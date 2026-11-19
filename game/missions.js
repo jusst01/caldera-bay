@@ -118,7 +118,7 @@ export const JOBS = [
     intro: ['Iris', 'This is it, Tavo. Drive the Zorro up the volcano and deliver the ledger.'],
     stages: [
       { verb: 'STEAL_CAR', spec: 'zorro', at: [64, -448] },
-      { verb: 'DELIVER', at: [0, -512], radius: 16, needCar: true, floor: 150 },
+      { verb: 'DELIVER', at: [0, -512], radius: 16, needCar: true, floor: 150, timeLimit: 120 },
       { verb: 'SURVIVE', seconds: 30, floor: 150 }
     ]
   }

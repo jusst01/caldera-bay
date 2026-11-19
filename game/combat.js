@@ -20,7 +20,7 @@ export function createCombat(hudRoot) {
 
   // Build DOM Weapon Wheel display
   const wheelEl = document.createElement('div');
-  wheelEl.style.cssText = 'position:fixed; bottom:20px; right:20px; background:rgba(0,0,0,0.8); color:#fff; padding:10px; border-radius:8px; font-size:14px; pointer-events:none; z-index:100;';
+  wheelEl.style.cssText = 'position:fixed; bottom:20px; right:20px; background:rgba(0,0,0,0.8); color:#fff; padding:10px; border-radius:8px; font-size:14px; pointer-events:none; z-index:100; display:none;';
   hudRoot.appendChild(wheelEl);
 
   function updateDisplay() {
@@ -42,6 +42,7 @@ export function createCombat(hudRoot) {
     set armour(v) { armour = Math.max(0, Math.min(100, v)); updateDisplay(); },
     get activeSlot() { return activeSlot; },
     setSlot(slot) { if (slot >= 0 && slot < 4) { activeSlot = slot; updateDisplay(); } },
+    showWheel() { wheelEl.style.display = 'block'; },
     ammo,
     takeDamage(amount) {
       if (armour > 0) {

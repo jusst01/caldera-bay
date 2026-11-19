@@ -398,8 +398,8 @@ function simStep(dt) {
 // Camera follow
 function updateCamera() {
   if (player.mode === 'foot') {
-    camera.position.set(player.x, player.y + 4, player.z + 6);
-    camera.lookAt(player.x, player.y + 1, player.z);
+    camera.position.set(player.x, 0.9 + 4, player.z + 6);
+    camera.lookAt(player.x, 0.9 + 1, player.z);
   } else if (player.mode === 'drive' && player.car) {
     const c = player.car;
     const cx = c.x - Math.sin(c.heading) * 8;
@@ -456,12 +456,12 @@ window.addEventListener('load', () => {
       window.__calderaTest.stageCover();
       window.__photo.setCamera([256, 4.5, -114], [256, 1.5, -134], 55);
     } else if (shot === 'onfoot') {
-      window.__photo.loadCanonical({ seed: 31, ticks: 30, force: { missionIndex: 4, heat: 15, panels: 'cover', dialogue: { speaker: 'IRIS', text: 'Clear the market street, Tavo.', time: 1 } } });
+      window.__photo.loadCanonical({ seed: 31, ticks: 30, force: { missionIndex: 4, stage: 1, heat: 15, panels: 'cover', dialogue: { speaker: 'IRIS', text: 'Clear the market street, Tavo.', time: 1 } } });
+      window.__calderaTest.stageOnFoot();
       player.mode = 'foot';
       player.x = -224; player.z = 288;
       combat.setSlot(2);
-      combat.wheelOpen = true;
-      hud.showWheel();
+      combat.showWheel();
     } else if (shot === 'garage') {
       window.__photo.loadCanonical({ seed: 12, force: { screen: 'garage', panels: 'off' } });
     } else if (shot === 'start') {
@@ -511,7 +511,10 @@ window.__photo = {
     if (spec.force) {
       if (spec.force.cash !== undefined) save.cash = spec.force.cash;
       if (spec.force.rep !== undefined) save.rep = spec.force.rep;
-      if (spec.force.missionIndex !== undefined) save.missionIndex = spec.force.missionIndex;
+      if (spec.force.missionIndex !== undefined) {
+        save.missionIndex = spec.force.missionIndex;
+        if (spec.force.stage !== undefined) missions.forceStage(spec.force.missionIndex, spec.force.stage);
+      }
       if (spec.force.heat !== undefined) police.setPoints(spec.force.heat >= 150 ? 150 : spec.force.heat >= 100 ? 100 : spec.force.heat >= 60 ? 60 : spec.force.heat >= 30 ? 30 : 10);
       if (spec.force.station !== undefined && radio) {
         save.radioStation = spec.force.station;
@@ -539,6 +542,8 @@ window.__photo = {
         simStep(1 / 60);
       }
     }
+
+    if (shot === 'onfoot') window.__calderaTest.stageOnFoot();
 
     // One HUD update pass after freeze
     hud.update({ player, police, save, missions, economy, radio, simTime, lastEvent, dialogueLine });
@@ -571,6 +576,21 @@ window.__calderaTest = {
   hash() {
     return computeStateHash();
   },
+  stageOnFoot() {
+    const spec = getVehicleSpec('caiman');
+    const mesh = createCarMesh('caiman');
+    scene.add(mesh);
+    mesh.position.set(-220, 0, 280);
+
+    const hostileGeo = new THREE.CapsuleGeometry(0.4, 1.2, 4, 8);
+    const hostileMat = new THREE.MeshStandardMaterial({ color: 0x3E3A45, roughness: 0.8, flatShading: true });
+
+    for (let i = 0; i < 3; i++) {
+        const mesh = new THREE.Mesh(hostileGeo, hostileMat);
+        mesh.position.set(-218 + i*2, 0.9, 290);
+        scene.add(mesh);
+    }
+  },
   stageCover() {
     const spec = getVehicleSpec('zorro');
     const mesh = createCarMesh('zorro-gt');
@@ -580,7 +600,7 @@ window.__calderaTest = {
       mesh,
       x: 256, z: -100,
       heading: 0,
-      speed: 37,
+      speed: 225,
       durability: 100
     };
     player.mode = 'drive';
