@@ -351,7 +351,7 @@ export function createHud(ctx, hudRoot) {
       if (obj) {
         updateText('hp-job', `JOB ${save.missionIndex + 1}/8 — ${obj.jobLabel}`);
         updateText('hp-obj', obj.objective);
-        updateText('hp-stage', `STAGE ${obj.stageIndex + 1}/${obj.totalStages} · NEXT: ${obj.next}`);
+        updateText('hp-stage', `${obj.stageLabel} · NEXT: ${obj.next}`);
         const timerEl = document.getElementById('hp-timer');
         if (obj.timer !== undefined) {
           timerEl.style.display = 'block';

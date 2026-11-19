@@ -101,6 +101,13 @@ export function createPolice(scene) {
         if (idx < targetCount) {
           u.active = true;
           u.mesh.visible = true;
+
+          // Assign tactic based on heat and index
+          if (heat === 1) u.tactic = TACTICS[1];
+          else if (heat === 2) u.tactic = (idx < 2) ? TACTICS[1] : TACTICS[2];
+          else if (heat === 3) u.tactic = (idx < 2) ? TACTICS[1] : (idx < 4) ? TACTICS[2] : TACTICS[3];
+          else if (heat >= 4) u.tactic = (idx < 2) ? TACTICS[1] : (idx < 4) ? TACTICS[2] : (idx < 6) ? TACTICS[3] : TACTICS[4];
+
           if (!u.x && !u.z) {
             const angle = Math.random() * Math.PI * 2;
             u.x = playerPos.x + Math.sin(angle) * 40;
@@ -120,6 +127,7 @@ export function createPolice(scene) {
         } else {
           u.active = false;
           u.mesh.visible = false;
+          u.tactic = undefined;
         }
       });
     }

@@ -63,12 +63,15 @@ server.listen(8085, '127.0.0.1', async () => {
     for (const shot of shots) {
       console.log(`Rendering ${shot.name} with query ${shot.query}...`);
       await page.goto('about:blank');
-      await page.goto(`http://127.0.0.1:8085/${shot.query}`, { waitUntil: 'domcontentloaded' });
-      await new Promise(r => setTimeout(r, 3000));
+      await page.goto(`http://127.0.0.1:8085/${shot.query}`);
+
+      // Wait for photo loading to be initialized and then finish
+      await page.waitForFunction(() => window.__photo !== undefined, { timeout: 30000 });
+      await page.waitForFunction(() => !window.__isPhotoLoading, { timeout: 30000 });
 
       let quality = 85;
       let buffer = null;
-      while (quality >= 60) {
+      while (quality >= 25) { // Adjusted loop lower bound per requirements
         buffer = await page.screenshot({ type: 'jpeg', quality });
         if (buffer.length <= 256 * 1024) break;
         quality -= 5;

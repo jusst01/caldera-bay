@@ -452,6 +452,7 @@ window.addEventListener('load', () => {
   if (shot) {
     if (shot === 'cover') {
       window.__photo.loadCanonical({ seed: 77, ticks: 90, force: { missionIndex: 6, heat: 110, panels: 'cover', event: { text: 'ROADBLOCK AHEAD', time: 1 } } });
+      missions.forceStage(6, 2);
       window.__calderaTest.stageCover();
       window.__photo.setCamera([256, 4.5, -114], [256, 1.5, -134], 55);
     } else if (shot === 'onfoot') {
@@ -571,7 +572,7 @@ window.__calderaTest = {
     return computeStateHash();
   },
   stageCover() {
-    const spec = getVehicleSpec('zorro-gt');
+    const spec = getVehicleSpec('zorro');
     const mesh = createCarMesh('zorro-gt');
     scene.add(mesh);
     player.car = {
@@ -598,11 +599,15 @@ window.__calderaTest = {
     police.forceRoadblock([256, -220], 0);
   },
   coverAudit() {
+    const job = missions.currentObjective();
     return {
       unitCount: police.units.length,
       heat: police.heat,
       carPos: player.car ? [player.car.x, player.car.z] : null,
-      units: police.units.map(u => ({ x: u.x, z: u.z }))
+      units: police.units.map(u => ({ x: u.x, z: u.z })),
+      jobActive: job ? (job.jobLabel === 'SKY EYE' && job.stageIndex === 1) : false,
+      heroSpec: player.car ? player.car.spec.name : null,
+      speed: player.car ? Math.abs(player.car.speed * 3.6) : 0
     };
   },
   modules() {
