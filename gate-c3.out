@@ -1,0 +1,9 @@
+CALDERA BAY C3 GATE REPORT (S5 Verification)
+==============================================
+1. Boot start screen visible on fresh profile: PASS
+2. Canonical start screen values (riseTitle: true, repVal: true, jobRows: 8): PASS
+3. Canonical garage (garageTitle: true, catalogRows: 12, zorroText: true): PASS
+4. Cover-mode audit (weaponsOpacity: 0.4, radioDisplay: none, objFontSize: 18px, dispatch: "DISPATCH · HEAT 4 · 8 UNITS", takeover: "CITY TAKEOVER 3/5"): PASS
+5. Radio card forced station check ("ONDA NOCTURNA"): PASS
+6. Weapons shop menu open & close check (open: true, closed: true): PASS
+7. S1/S2 Determinism check (h1: 300da02b, h2: 300da02b): PASS

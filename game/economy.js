@@ -254,6 +254,50 @@ export function createEconomy(ctx) {
       trialCheckpointIdx = 0;
       trialTimer = 0;
     },
+    openWeaponShop() {
+      ctx.openMenu({
+        title: 'WEAPONS & ARMOUR SHOP',
+        build: () => ({
+          subtitle: `Cash: $${ctx.save.cash} | REP: ${ctx.save.rep}`,
+          rows: [
+            { label: 'Chispa Pistol Ammo ($30)', action: () => this.buyAmmo(1) },
+            { label: 'Zumbido SMG Ammo ($60)', action: () => this.buyAmmo(2) },
+            { label: 'Trueno Shotgun Ammo ($120)', action: () => this.buyAmmo(3) },
+            { label: 'Body Armour ($150)', action: () => this.buyArmour() },
+            { label: 'Leave', action: () => 'close' }
+          ]
+        })
+      });
+    },
+    openChopShop() {
+      ctx.openMenu({
+        title: 'CHOP SHOP & CONTRACTS',
+        build: () => ({
+          subtitle: this.contractInfo(),
+          rows: [
+            { label: 'Accept Chop Contract', action: () => this.acceptContract() },
+            { label: 'Sell Current Vehicle', action: () => this.sellCar(ctx.player.car) },
+            { label: 'Leave', action: () => 'close' }
+          ]
+        })
+      });
+    },
+    openSafehouse() {
+      ctx.openMenu({
+        title: 'SAFEHOUSE & FAST TRAVEL',
+        build: () => ({
+          subtitle: `Broker REP required for travel`,
+          rows: [
+            { label: 'Travel to Muelle Viejo', action: () => this.travelTo('muelle') },
+            { label: 'Travel to Paseo Dorado', action: () => this.travelTo('paseo') },
+            { label: 'Travel to Alto Verde', action: () => this.travelTo('verde') },
+            { label: 'Travel to Distrito Ceniza', action: () => this.travelTo('ceniza') },
+            { label: 'Travel to La Cumbre', action: () => this.travelTo('cumbre') },
+            { label: 'Leave', action: () => 'close' }
+          ]
+        })
+      });
+    },
     update(dt) {
       if (contractCooldown > 0) contractCooldown -= dt;
       if (activeContract) {
