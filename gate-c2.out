@@ -1,0 +1,11 @@
+CALDERA BAY C2 GATE REPORT
+==========================
+0. Modules contract check: PASS
+1. Determinism check (hash1: 694a98d0, hash2: 694a98d0): PASS
+2. Job 1 full loop (jobsDone: 1, cash: 550, rep: 40): PASS
+3. Job 3 floor clamp check (points: 30): PASS
+4. Job 5 shootout stage advance (spawns: 3, stage: 2): PASS
+5. Job 6 respray check (cash diff: 200, stage: 3): PASS
+6. Contract loop check (contractsDone: 1, cash: 770): PASS
+7. Garage recall & owned car chop refusal (recalled: true, msg: "Refused: This is an owned garage vehicle."): PASS
+8. Trial REP once check (rep1: 15, rep2Change: 0): PASS

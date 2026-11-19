@@ -61,6 +61,13 @@ export function createPolice(scene) {
         if (heat > 0 && state === 'IDLE') state = 'PURSUIT';
       }
     },
+    setPoints(pts) {
+      if (pts > points) {
+        points = pts;
+        heat = getHeatLevel(points);
+        if (heat > 0 && state === 'IDLE') state = 'PURSUIT';
+      }
+    },
     respray() {
       points = 0;
       heat = 0;
