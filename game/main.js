@@ -577,19 +577,53 @@ window.__calderaTest = {
     return computeStateHash();
   },
   stageOnFoot() {
+    // 1. Seed 31 is set in loadCanonical
+    // 2. Job 5, Stage 2 (SHOOTOUT) is forced in load
+
+    // Position the player (street)
+    player.mode = 'foot';
+    player.x = -224; player.z = 300;
+    playerMesh.position.set(player.x, 0.9, player.z);
+    scene.add(playerMesh);
+
+    // Parked Caimán
     const spec = getVehicleSpec('caiman');
     const mesh = createCarMesh('caiman');
     scene.add(mesh);
-    mesh.position.set(-220, 0, 280);
+    mesh.position.set(-224 + 4, 0, 300); // 4m right
 
+    // Hostiles (7-16m band)
     const hostileGeo = new THREE.CapsuleGeometry(0.4, 1.2, 4, 8);
     const hostileMat = new THREE.MeshStandardMaterial({ color: 0x3E3A45, roughness: 0.8, flatShading: true });
-
     for (let i = 0; i < 3; i++) {
         const mesh = new THREE.Mesh(hostileGeo, hostileMat);
-        mesh.position.set(-218 + i*2, 0.9, 290);
+        // Place in 7-16m band
+        const angle = i * Math.PI * 0.5;
+        mesh.position.set(-224 + Math.sin(angle)*10, 0.9, 300 + Math.cos(angle)*10);
         scene.add(mesh);
     }
+
+    // Camera
+    window.__photo.setCamera([-224, 0.9 + 2, 300 + 6], [-224, 0.9 + 1, 300], 60);
+
+    // Firing tracers
+    combat.setSlot(1); // Pistol
+    combat.shoot(() => {
+        lastGunshotTime = simTime;
+    });
+
+    // Wheel
+    combat.showWheel();
+
+    // Log for gate-c4.out
+    const hostiles = missions.hostiles;
+    console.log(`PLAYER: ${player.x}, ${player.z}`);
+    hostiles.forEach((h, i) => {
+        const dist = Math.hypot(h.x - player.x, h.z - player.z);
+        console.log(`HOSTILE ${i}: ${h.x}, ${h.z}, dist: ${dist}`);
+    });
+    console.log(`WHEEL OPEN: ${combat.isWheelOpen}`);
+    console.log(`CAMERA: ${camera.position.x}, ${camera.position.y}, ${camera.position.z}`);
   },
   stageCover() {
     const spec = getVehicleSpec('zorro');

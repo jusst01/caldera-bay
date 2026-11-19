@@ -43,6 +43,7 @@ export function createCombat(hudRoot) {
     get activeSlot() { return activeSlot; },
     setSlot(slot) { if (slot >= 0 && slot < 4) { activeSlot = slot; updateDisplay(); } },
     showWheel() { wheelEl.style.display = 'block'; },
+    get isWheelOpen() { return wheelEl.style.display === 'block'; },
     ammo,
     takeDamage(amount) {
       if (armour > 0) {
