@@ -6,7 +6,7 @@ Caldera Bay is a sun-baked volcanic bay city where you, a former repo driver, mu
 ![rank](https://make.fun/badge/gta6-01/jusst01/caldera-bay/rank.svg)
 ![reward](https://make.fun/badge/gta6-01/jusst01/caldera-bay/reward.svg)
 
-[Competition Page](https://make.fun/gta6-01)
+[Competition Page](https://make.fun/c/gta6-01)
 
 ## Features
 - 8 story jobs
