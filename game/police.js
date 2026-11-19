@@ -42,6 +42,23 @@ export function createPolice(scene) {
     });
   }
 
+  const roadblockGroup = new THREE.Group();
+  scene.add(roadblockGroup);
+
+  function forceRoadblock(pos, heading) {
+    roadblockGroup.clear();
+    const car1 = createCarMesh('fenix', true);
+    const car2 = createCarMesh('fenix', true);
+    scene.add(car1);
+    scene.add(car2);
+    car1.position.set(pos[0] - 3.5, 0, pos[1]);
+    car2.position.set(pos[0] + 3.5, 0, pos[1]);
+    car1.rotation.y = heading + Math.PI / 2;
+    car2.rotation.y = heading + Math.PI / 2;
+    roadblockGroup.add(car1);
+    roadblockGroup.add(car2);
+  }
+
   function getHeatLevel(pts) {
     for (let h = 5; h >= 1; h--) {
       if (pts >= HEAT_THRESHOLDS[h]) return h;
@@ -54,6 +71,7 @@ export function createPolice(scene) {
     get heat() { return heat; },
     get state() { return state; },
     get units() { return units.filter(u => u.active); },
+    forceRoadblock,
     addPoints(amt, witnessed, pedCount, unitNear) {
       if (witnessed || pedCount > 0 || unitNear) {
         points += amt;

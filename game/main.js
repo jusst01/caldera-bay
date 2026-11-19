@@ -425,7 +425,7 @@ function animate(now) {
     }
   }
 
-  updateCamera();
+  if (!shot) updateCamera();
   renderer.render(scene, camera);
 
   if (!screenOpen) {
@@ -442,6 +442,34 @@ function animate(now) {
     });
   }
 }
+
+let shot = null;
+window.addEventListener('load', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  console.log('PARAMS:', window.location.search);
+  shot = urlParams.get('shot');
+  console.log('SHOT:', shot);
+  if (shot) {
+    if (shot === 'cover') {
+      window.__photo.loadCanonical({ seed: 77, ticks: 90, force: { missionIndex: 6, heat: 110, panels: 'cover', event: { text: 'ROADBLOCK AHEAD', time: 1 } } });
+      window.__calderaTest.stageCover();
+      window.__photo.setCamera([256, 4.5, -114], [256, 1.5, -134], 55);
+    } else if (shot === 'onfoot') {
+      window.__photo.loadCanonical({ seed: 31, ticks: 30, force: { missionIndex: 4, heat: 15, panels: 'cover', dialogue: { speaker: 'IRIS', text: 'Clear the market street, Tavo.', time: 1 } } });
+      player.mode = 'foot';
+      player.x = -224; player.z = 288;
+      combat.setSlot(2);
+      combat.wheelOpen = true;
+      hud.showWheel();
+    } else if (shot === 'garage') {
+      window.__photo.loadCanonical({ seed: 12, force: { screen: 'garage', panels: 'off' } });
+    } else if (shot === 'start') {
+      window.__photo.loadCanonical({ seed: 5, force: { screen: 'start', panels: 'off' } });
+      window.__photo.setCamera([0, 24, -430], [0, 90, -512], 50);
+    }
+  }
+});
+
 requestAnimationFrame(animate);
 
 function computeStateHash() {
@@ -457,6 +485,10 @@ function computeStateHash() {
 window.__isPhotoLoading = false;
 
 window.__photo = {
+  loadCanonical(spec) {
+    save = canonicalSave();
+    this.load(spec);
+  },
   load(spec) {
     window.__isPhotoLoading = true;
     screenOpen = false;
@@ -465,6 +497,7 @@ window.__photo = {
     hud.closeMenu();
 
     seed = spec.seed ?? 77;
+    console.log('LOADING SHOT:', seed);
     simTime = 0;
     scene.clear();
     city = createCity(scene, seed);
@@ -536,6 +569,41 @@ window.__calderaTest = {
   },
   hash() {
     return computeStateHash();
+  },
+  stageCover() {
+    const spec = getVehicleSpec('zorro-gt');
+    const mesh = createCarMesh('zorro-gt');
+    scene.add(mesh);
+    player.car = {
+      spec,
+      mesh,
+      x: 256, z: -100,
+      heading: 0,
+      speed: 37,
+      durability: 100
+    };
+    player.mode = 'drive';
+    mesh.position.set(256, 0, -100);
+
+    const units = police.units;
+    if (units.length >= 2) {
+      units[0].x = 256 - 8.5; units[0].z = -104;
+      units[1].x = 256 + 8.5; units[1].z = -104;
+    }
+    for (let i = 2; i < units.length; i++) {
+      units[i].x = 256 + (i % 2 === 0 ? -3 : 3);
+      units[i].z = -100 - (i * 12);
+    }
+
+    police.forceRoadblock([256, -220], 0);
+  },
+  coverAudit() {
+    return {
+      unitCount: police.units.length,
+      heat: police.heat,
+      carPos: player.car ? [player.car.x, player.car.z] : null,
+      units: police.units.map(u => ({ x: u.x, z: u.z }))
+    };
   },
   modules() {
     return { city, traffic, peds, police, combat, vehicles: { ROSTER }, missions, economy, save, player, playerMesh, hud, radio };
