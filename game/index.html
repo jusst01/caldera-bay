@@ -3,13 +3,67 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Caldera Bay</title>
+<title>CALDERA BAY</title>
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #11141b; font-family: sans-serif; user-select: none; }
-  #game-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-  #hud-root { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
-  button:hover { filter: brightness(1.15); }
-  button:active { filter: brightness(0.9); }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #11141b;
+    font-family: monospace;
+    color: #fff;
+  }
+  #game {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+  }
+  #hud-root {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  #screen-root {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    pointer-events: auto;
+  }
+  .hud-panel {
+    background: rgba(20,24,32,0.85);
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  #prompt {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20,24,32,0.9);
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid #FF8C42;
+    display: none;
+    z-index: 20;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  }
+  #status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 </style>
 <script type="importmap">
 {
@@ -20,8 +74,11 @@
 </script>
 </head>
 <body>
-<canvas id="game-canvas" aria-label="Caldera Bay open-world crime game"></canvas>
+<canvas id="game" aria-label="CALDERA BAY open world crime game"></canvas>
 <div id="hud-root"></div>
+<div id="screen-root"></div>
+<div id="prompt">PRESS E TO CARJACK</div>
+<p id="status" role="status" aria-live="polite"></p>
 <script type="module" src="./main.js"></script>
 </body>
 </html>

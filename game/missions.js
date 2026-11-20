@@ -1,510 +1,347 @@
-import * as THREE from 'three';
-import { getVehicleSpec, createCarMesh } from './vehicles.js';
-import { mulberry32 } from './city.js';
+// CALDERA BAY — missions.js
+// Job engine, stage verbs, hostiles management, set pieces, and all 8 story missions.
+
+import * as THREE from './three.module.min.js';
+import * as city from './city.js';
 
 export const JOBS = [
   {
-    id: 0,
-    title: 'Repo Man',
+    title: 'Caldera Run',
     district: 'muelle',
     cash: 300,
     rep: 40,
-    repGate: 0,
     start: [-300, 300],
-    intro: ['Iris', 'Tavo, there is a Corsario S down at the dock lot. Go lift it.'],
+    intro: ['DOÑA IRIS', 'A quick delivery across the bay. Caldera Run.'],
     stages: [
-      { verb: 'STEAL_CAR', spec: 'corsario', at: [-384, 256] },
-      { verb: 'DELIVER', at: [-256, 384], radius: 13, needCar: true }
-    ]
-  },
-  {
-    id: 1,
-    title: 'Hot Cargo',
-    district: 'muelle',
-    cash: 450,
-    rep: 50,
-    repGate: 0,
-    start: [-300, 300],
-    intro: ['Iris', 'Fragile cargo in the Caimán. Get across town fast without wrecking it.'],
-    stages: [
-      { verb: 'STEAL_CAR', spec: 'caiman', at: [-448, 320] },
-      { verb: 'DELIVER', at: [384, 64], radius: 14, needCar: true, timeLimit: 150 },
-      { verb: 'DRIVE_TO', at: [320, 128] }
-    ]
-  },
-  {
-    id: 2,
-    title: 'Loud Exit',
-    district: 'muelle',
-    cash: 600,
-    rep: 60,
-    repGate: 100, // Runner
-    start: [-300, 300],
-    intro: ['Iris', 'The dock heist blew up early. Shake the heat and get out.'],
-    stages: [
-      { verb: 'DRIVE_TO', at: [-448, 384] },
-      { verb: 'SURVIVE', seconds: 40, floor: 30 },
+      { verb: 'DRIVE_TO', at: [-256, 384] },
+      { verb: 'DELIVER', at: [384, 64], radius: 14 },
       { verb: 'DRIVE_TO', at: [-320, 320] }
     ]
   },
   {
-    id: 3,
-    title: 'Chop Shop Run',
+    title: 'Muelle Pickup',
+    district: 'muelle',
+    cash: 450,
+    rep: 50,
+    start: [-320, 320],
+    intro: ['DOÑA IRIS', 'Pick up the crate in Muelle Viejo. Keep it cool.'],
+    stages: [
+      { verb: 'DRIVE_TO', at: [-448, 320] },
+      { verb: 'SURVIVE', seconds: 40, floor: 30 },
+      { verb: 'DELIVER', at: [-256, 384], radius: 14 }
+    ]
+  },
+  {
+    title: 'Ash Run',
     district: 'ceniza',
+    cash: 600,
+    rep: 60,
+    start: [-256, 384],
+    intro: ['TAVO REYES', 'Cruising through Ceniza. Keep your head down.'],
+    stages: [
+      { verb: 'DRIVE_TO', at: [-192, -320] },
+      { verb: 'DRIVE_TO', at: [-320, -256] },
+      { verb: 'DRIVE_TO', at: [-384, -192] }
+    ]
+  },
+  {
+    title: 'Vista Photo',
+    district: 'paseo',
     cash: 800,
     rep: 70,
-    repGate: 100, // Runner
-    start: [-300, -300],
-    intro: ['Iris', 'We need three specific rides at the chop shop before time runs out.'],
+    start: [-384, -192],
+    intro: ['DOÑA IRIS', 'Get some shots of the Paseo without drawing attention. Heat 0.'],
     stages: [
-      { verb: 'CHECKLIST', specs: ['fantasma', 'zorro', 'sirena'], at: [-320, -256], radius: 14, timeLimit: 360 },
+      { verb: 'DRIVE_TO', at: [256, 128] },
+      { verb: 'DRIVE_TO', at: [384, 64] }
+    ]
+  },
+  {
+    title: 'Chop Run',
+    district: 'ceniza',
+    cash: 1000,
+    rep: 80,
+    start: [384, 64],
+    intro: ['DOÑA IRIS', 'Three cars needed at the chop shop.'],
+    stages: [
+      { verb: 'CHECKLIST', specs: ['fantasma', 'zorro-gt', 'sirena'], at: [-320, -256], radius: 14, timeLimit: 360 },
       { verb: 'DRIVE_TO', at: [-192, -320] }
     ]
   },
   {
-    id: 4,
-    title: 'The Setup',
-    district: 'muelle',
-    cash: 1000,
-    rep: 80,
-    repGate: 250, // Wheelman
-    start: [-300, 300],
-    intro: ['Iris', 'La Marea is waiting at the fish market. Clear them out.'],
-    stages: [
-      { verb: 'DRIVE_TO', at: [-192, 320] },
-      { verb: 'SHOOTOUT', at: [-224, 288], count: 3 },
-      { verb: 'DRIVE_TO', at: [-320, 320] }
-    ]
-  },
-  {
-    id: 5,
-    title: 'Roadblock County',
-    district: 'ceniza',
+    title: 'Skyline Circuit',
+    district: 'verde',
     cash: 1200,
     rep: 90,
-    repGate: 250, // Wheelman
-    start: [-300, -300],
-    intro: ['Iris', 'Heavy pursuit incoming. Grab the Fantasma, survive, then ditch the paint.'],
+    start: [-192, -320],
+    intro: ['TAVO REYES', 'Time trial on the ridge. Ghost clock.'],
     stages: [
-      { verb: 'STEAL_CAR', spec: 'fantasma', at: [-128, -256] },
-      { verb: 'SURVIVE', seconds: 30, floor: 60 },
-      { verb: 'RESPRAY', at: [-384, -192] },
-      { verb: 'DRIVE_TO', at: [-320, 320] }
+      { verb: 'DRIVE_TO', at: [300, -300] },
+      { verb: 'DRIVE_TO', at: [0, -500] },
+      { verb: 'DRIVE_TO', at: [320, -384] }
     ]
   },
   {
-    id: 6,
-    title: 'Sky Eye',
-    district: 'verde',
+    title: 'The Long Haul',
+    district: 'muelle',
     cash: 1600,
     rep: 110,
-    repGate: 500, // Fixer
-    start: [300, -300],
-    intro: ['Iris', 'Villa heist in Alto Verde. Lift the Relámpago under chopper watch.'],
+    start: [320, -384],
+    intro: ['DOÑA IRIS', 'Long cross-map haul. Don\'t be late.'],
     stages: [
-      { verb: 'DRIVE_TO', at: [320, -384] },
-      { verb: 'STEAL_CAR', spec: 'relampago', at: [384, -320] },
-      { verb: 'DELIVER', at: [0, -192], radius: 16, needCar: true, floor: 100 }
+      { verb: 'DRIVE_TO', at: [320, 128] },
+      { verb: 'DELIVER', at: [-448, 320], radius: 16, timeLimit: 300 }
     ]
   },
   {
-    id: 7,
-    title: 'La Cumbre',
+    title: 'Caldera King',
     district: 'cumbre',
     cash: 2500,
     rep: 150,
-    repGate: 1400, // Leyenda
+    repGate: 1400,
     start: [0, -500],
-    intro: ['Iris', 'This is it, Tavo. Drive the Zorro up the volcano and deliver the ledger.'],
+    intro: ['DOÑA IRIS', 'This is it, Tavo. The Caldera King. Keep it at heat 5.'],
     stages: [
-      { verb: 'STEAL_CAR', spec: 'zorro', at: [64, -448] },
-      { verb: 'DELIVER', at: [0, -512], radius: 16, needCar: true, floor: 150, timeLimit: 120 },
-      { verb: 'SURVIVE', seconds: 30, floor: 150 }
+      { verb: 'STEAL_CAR', spec: 'zorro-gt', at: [64, -448] },
+      { verb: 'SURVIVE', seconds: 60, floor: 150 },
+      { verb: 'DELIVER', at: [0, -512], radius: 16, floor: 150 }
     ]
   }
 ];
 
 export function createMissions(ctx) {
-  let activeJobIdx = -1;
-  let stageIdx = 0;
+  let activeJobIndex = -1;
+  let activeStageIndex = 0;
   let stageTimer = 0;
   let stageCar = null;
   let hostiles = [];
-  let checklistDelivered = [];
-  let edgeLatchMet = false;
-  let lastDistToTarget = 9999;
+  let checklistDelivered = {};
+  let lastObjectiveText = '';
 
-  const hostileGeo = new THREE.CapsuleGeometry(0.4, 1.2, 4, 8);
-  const hostileMat = new THREE.MeshStandardMaterial({ color: 0x3E3A45, roughness: 0.8, flatShading: true });
-
-  function spawnHostiles(at, count, seedVal) {
+  function reset() {
+    activeJobIndex = -1;
+    activeStageIndex = 0;
+    stageTimer = 0;
+    stageCar = null;
     hostiles = [];
-    const rng = mulberry32(seedVal);
-    for (let i = 0; i < count; i++) {
-      const angle = rng() * Math.PI * 2;
-      const dist = 8 + rng() * 6;
-      let hx = at[0] + Math.sin(angle) * dist;
-      let hz = at[1] + Math.cos(angle) * dist;
-
-      // Eject out of building footprints if needed
-      for (const col of ctx.city.colliders) {
-        if (hx > col.minX && hx < col.maxX && hz > col.minZ && hz < col.maxZ) {
-          const pushX = hx > (col.minX + col.maxX)/2 ? col.maxX + 1 : col.minX - 1;
-          hx = pushX;
-        }
-      }
-
-      const mesh = new THREE.Mesh(hostileGeo, hostileMat);
-      mesh.castShadow = true;
-      ctx.scene.add(mesh);
-      mesh.position.set(hx, 0.9, hz);
-
-      hostiles.push({
-        mesh,
-        x: hx, z: hz,
-        hp: 45,
-        maxHp: 45,
-        fireTimer: rng() * 2,
-        heading: rng() * Math.PI * 2
-      });
-    }
+    checklistDelivered = {};
+    city.setFinaleDusk(false);
   }
 
-  function clearHostiles() {
-    for (const h of hostiles) {
-      ctx.scene.remove(h.mesh);
-    }
-    hostiles = [];
+  function jobActive() {
+    return activeJobIndex >= 0 && activeJobIndex < JOBS.length;
   }
 
-  function setupStage() {
-    edgeLatchMet = false;
-    lastDistToTarget = 9999;
-    clearHostiles();
-    if (activeJobIdx < 0 || activeJobIdx >= JOBS.length) return;
-    const job = JOBS[activeJobIdx];
-    const stage = job.stages[stageIdx];
-
-    if (job.id === 7) {
-      ctx.city.setFinaleDusk(true);
-    } else {
-      ctx.city.setFinaleDusk(false);
+  function startJob(index, bypassCheck = false) {
+    if (jobActive()) return false;
+    const save = ctx.save;
+    if (!bypassCheck && index !== save.missionIndex) return false;
+    const job = JOBS[index];
+    if (job.repGate && save.rep < job.repGate) {
+      ctx.notify(`Requires ${job.repGate} REP to unlock!`);
+      return false;
     }
+    activeJobIndex = index;
+    activeStageIndex = 0;
+    stageTimer = 0;
+    stageCar = null;
+    hostiles = [];
+    checklistDelivered = {};
+    if (index === 7) {
+      city.setFinaleDusk(true);
+    }
+    ctx.dialogue(job.intro[0], job.intro[1]);
+    ctx.notify(`MISSION STARTED: ${job.title}`);
+    initStage();
+    return true;
+  }
+
+  function initStage() {
+    const job = JOBS[activeJobIndex];
+    if (!job) return;
+    const stage = job.stages[activeStageIndex];
+    stageTimer = stage.timeLimit || 0;
+    hostiles = [];
 
     if (stage.verb === 'STEAL_CAR') {
-      // Spawn parked car
-      const spec = getVehicleSpec(stage.spec);
-      const mesh = createCarMesh(stage.spec);
-      ctx.scene.add(mesh);
-      mesh.position.set(stage.at[0], 0, stage.at[1]);
-      stageCar = {
-        mesh,
-        spec,
-        x: stage.at[0],
-        z: stage.at[1],
-        speed: 0,
-        heading: 0,
-        stolen: false,
-        durability: 100,
-        jobCar: true
-      };
-      ctx.traffic.cars.push(stageCar);
+      stageCar = ctx.spawnStageCar(stage.spec, stage.at);
     } else if (stage.verb === 'SHOOTOUT') {
-      spawnHostiles(stage.at, stage.count, 9000 + activeJobIdx * 37 + stageIdx);
-    } else if (stage.verb === 'CHECKLIST') {
-      checklistDelivered = [];
-    }
-
-    if (stage.timeLimit) {
-      stageTimer = stage.timeLimit;
-    } else if (stage.seconds) {
-      stageTimer = stage.seconds;
-    } else {
-      stageTimer = 0;
+      for (let i = 0; i < (stage.count || 3); i++) {
+        const angle = (i / stage.count) * Math.PI * 2;
+        const hx = stage.at[0] + Math.cos(angle) * 10;
+        const hz = stage.at[1] + Math.sin(angle) * 10;
+        const clamped = city.eject(hx, hz, 1.0);
+        hostiles.push({
+          x: clamped.x,
+          z: clamped.z,
+          hp: 45,
+          alive: true,
+          mesh: ctx.spawnHostileMesh(clamped.x, clamped.z)
+        });
+      }
     }
   }
 
-  function failJob() {
-    if (activeJobIdx < 0) return;
-    ctx.notify('JOB FAILED: ' + JOBS[activeJobIdx].title);
-    ctx.save.stats.jobsFailed++;
-    clearHostiles();
-    if (stageCar) {
-      const idx = ctx.traffic.cars.indexOf(stageCar);
-      if (idx >= 0) ctx.traffic.cars.splice(idx, 1);
-      ctx.scene.remove(stageCar.mesh);
-      stageCar = null;
+  function update(dt) {
+    if (!jobActive()) return;
+    const job = JOBS[activeJobIndex];
+    const stage = job.stages[activeStageIndex];
+
+    if (stageTimer > 0) {
+      stageTimer -= dt;
+      if (stageTimer <= 0) {
+        failJob('Mission time expired!');
+        return;
+      }
     }
-    activeJobIdx = -1;
-    stageIdx = 0;
-    ctx.city.setFinaleDusk(false);
+
+    if (stage.floor && ctx.policePoints) {
+      ctx.setMinimumPolicePoints(stage.floor);
+    }
+
+    const playerPos = ctx.playerPos();
+
+    if (stage.verb === 'DRIVE_TO' || stage.verb === 'DELIVER' || stage.verb === 'RESPRAY') {
+      const target = stage.at;
+      const radius = stage.radius || 12;
+      const dist = Math.hypot(playerPos.x - target[0], playerPos.z - target[1]);
+      if (dist <= radius) {
+        if (stage.verb === 'DELIVER' && stage.needCar) {
+          if (ctx.playerOnFoot || (stageCar && ctx.playerCar !== stageCar)) {
+            return; // Needs the stage car
+          }
+        }
+        if (stage.verb === 'RESPRAY') {
+          ctx.triggerRespray();
+        }
+        advanceStage();
+      }
+    } else if (stage.verb === 'STEAL_CAR') {
+      if (stageCar && !ctx.playerOnFoot && ctx.playerCar === stageCar) {
+        advanceStage();
+      } else if (!stageCar || stageCar.durability <= 0) {
+        // Respawn stage car if destroyed
+        stageCar = ctx.spawnStageCar(stage.spec, stage.at);
+      }
+    } else if (stage.verb === 'SURVIVE') {
+      stageTimer -= dt;
+      if (stageTimer <= 0) {
+        advanceStage();
+      }
+    } else if (stage.verb === 'SHOOTOUT') {
+      let aliveCount = 0;
+      for (const h of hostiles) {
+        if (h.alive) aliveCount++;
+      }
+      if (aliveCount === 0) {
+        advanceStage();
+      }
+    } else if (stage.verb === 'CHECKLIST') {
+      const target = stage.at;
+      const dist = Math.hypot(playerPos.x - target[0], playerPos.z - target[1]);
+      if (dist <= (stage.radius || 14) && !ctx.playerOnFoot && ctx.playerCar) {
+        const specId = ctx.playerCar.spec.id;
+        if (stage.specs.includes(specId) && !checklistDelivered[specId]) {
+          checklistDelivered[specId] = true;
+          ctx.removePlayerCar();
+          ctx.notify(`Delivered ${specId.toUpperCase()}`);
+          let allDone = true;
+          for (const s of stage.specs) {
+            if (!checklistDelivered[s]) allDone = false;
+          }
+          if (allDone) {
+            advanceStage();
+          }
+        }
+      }
+    }
+  }
+
+  function advanceStage() {
+    const job = JOBS[activeJobIndex];
+    activeStageIndex++;
+    if (activeStageIndex >= job.stages.length) {
+      completeJob();
+    } else {
+      initStage();
+    }
   }
 
   function completeJob() {
-    const job = JOBS[activeJobIdx];
-    ctx.addCash(job.cash);
-    ctx.save.rep += job.rep;
-    ctx.save.jobsDone++;
-    ctx.save.missionIndex = Math.max(ctx.save.missionIndex, activeJobIdx + 1);
-    const dId = job.district;
-    ctx.save.takeover[dId] = Math.min(100, (ctx.save.takeover[dId] || 0) + 20);
-    ctx.dialogue('Iris', `Great work on ${job.title}, Tavo. Here is your cut.`);
-    ctx.notify(`MISSION COMPLETE: ${job.title} (+$${job.cash}, +${job.rep} REP)`);
-    clearHostiles();
-    if (stageCar) {
-      const idx = ctx.traffic.cars.indexOf(stageCar);
-      if (idx >= 0) ctx.traffic.cars.splice(idx, 1);
-      ctx.scene.remove(stageCar.mesh);
-      stageCar = null;
-    }
-    activeJobIdx = -1;
-    stageIdx = 0;
-    ctx.city.setFinaleDusk(false);
+    const job = JOBS[activeJobIndex];
+    const save = ctx.save;
+    save.cash += job.cash;
+    save.rep += job.rep;
+    save.jobsDone++;
+    save.missionIndex++;
+    save.takeover[job.district] = Math.min(100, (save.takeover[job.district] || 0) + 20);
+    ctx.notify(`MISSION COMPLETE: +$${job.cash}, +${job.rep} REP`);
+    ctx.dialogue('DOÑA IRIS', 'Clean work. The syndicate won\'t forget this.');
+    city.setFinaleDusk(false);
+    activeJobIndex = -1;
+    activeStageIndex = 0;
+    stageCar = null;
+    ctx.persistSave();
+  }
+
+  function failJob(reason) {
+    const job = JOBS[activeJobIndex];
+    ctx.notify(`MISSION FAILED: ${reason}`);
+    save.stats.jobsFailed++;
+    city.setFinaleDusk(false);
+    activeJobIndex = -1;
+    activeStageIndex = 0;
+    stageCar = null;
+  }
+
+  function currentObjective() {
+    if (!jobActive()) return null;
+    const job = JOBS[activeJobIndex];
+    const stage = job.stages[activeStageIndex];
+    let objText = `${job.title} — Stage ${activeStageIndex + 1}/${job.stages.length}`;
+    if (stage.verb === 'STEAL_CAR') objText = `Steal the ${stage.spec.toUpperCase()}`;
+    else if (stage.verb === 'DELIVER') objText = `Deliver vehicle to drop point`;
+    else if (stage.verb === 'DRIVE_TO') objText = `Drive to waypoint`;
+    else if (stage.verb === 'SURVIVE') objText = `Survive police pursuit (${Math.ceil(stageTimer)}s)`;
+    else if (stage.verb === 'SHOOTOUT') objText = `Eliminate hostile forces`;
+    else if (stage.verb === 'CHECKLIST') objText = `Deliver requested vehicles`;
+    else if (stage.verb === 'RESPRAY') objText = `Respray vehicle at spray shop`;
+
+    return {
+      jobLabel: `JOB ${activeJobIndex + 1}/8: ${job.title}`,
+      objective: objText,
+      next: activeStageIndex + 1 < job.stages.length ? job.stages[activeStageIndex + 1].verb : 'Finalize',
+      timer: stageTimer > 0 ? Math.ceil(stageTimer) : null
+    };
+  }
+
+  function marker() {
+    if (!jobActive()) return null;
+    const job = JOBS[activeJobIndex];
+    const stage = job.stages[activeStageIndex];
+    if (stage.at) return { x: stage.at[0], z: stage.at[1] };
+    return null;
+  }
+
+  function setStage(stageIndex) {
+    if (!jobActive()) return;
+    const job = JOBS[activeJobIndex];
+    activeStageIndex = Math.min(Math.max(0, stageIndex), job.stages.length - 1);
+    initStage();
   }
 
   return {
-    get activeJobIdx() { return activeJobIdx; },
-    get stageIdx() { return stageIdx; },
-    get stageCar() { return stageCar; },
-    get hostiles() { return hostiles; },
-    jobActive() { return activeJobIdx >= 0; },
-    startJob(i) {
-      if (i !== ctx.save.missionIndex || activeJobIdx >= 0) return false;
-      const job = JOBS[i];
-      if (!job) return false;
-      if (ctx.save.rep < job.repGate) {
-        ctx.notify(`Locked: Requires ${job.repGate} REP`);
-        return false;
-      }
-      activeJobIdx = i;
-      stageIdx = 0;
-      setupStage();
-      ctx.dialogue(job.intro[0], job.intro[1]);
-      ctx.notify(`STARTED: ${job.title}`);
-      return true;
-    },
-    forceStage(jIdx, sIdx) {
-      activeJobIdx = jIdx;
-      stageIdx = sIdx;
-      setupStage();
-    },
-    reset() {
-      activeJobIdx = -1;
-      stageIdx = 0;
-      clearHostiles();
-      if (stageCar) {
-        ctx.scene.remove(stageCar.mesh);
-        stageCar = null;
-      }
-    },
-    onPlayerDown() {
-      if (activeJobIdx >= 0) {
-        failJob();
-      }
-    },
-    resprayStageActive() {
-      if (activeJobIdx < 0) return false;
-      const job = JOBS[activeJobIdx];
-      const stage = job.stages[stageIdx];
-      return stage && stage.verb === 'RESPRAY';
-    },
-    onRespray() {
-      if (activeJobIdx >= 0) {
-        const job = JOBS[activeJobIdx];
-        const stage = job.stages[stageIdx];
-        if (stage && stage.verb === 'RESPRAY') {
-          stageIdx++;
-          if (stageIdx >= job.stages.length) {
-            completeJob();
-          } else {
-            setupStage();
-          }
-        }
-      }
-    },
-    damageHostile(h, amt) {
-      h.hp -= amt;
-      if (h.hp <= 0) {
-        h.mesh.rotation.x = Math.PI / 2;
-      }
-    },
-    marker() {
-      if (activeJobIdx < 0) return null;
-      const job = JOBS[activeJobIdx];
-      const stage = job.stages[stageIdx];
-      if (!stage) return null;
-      if (stage.at) return stage.at;
-      return null;
-    },
-    currentObjective() {
-      if (activeJobIdx < 0) return null;
-      const job = JOBS[activeJobIdx];
-      const stage = job.stages[stageIdx];
-      let objectiveText = '';
-      if (stage.verb === 'STEAL_CAR') objectiveText = `Steal the ${stage.spec.toUpperCase()}`;
-      else if (stage.verb === 'DELIVER') objectiveText = `Deliver vehicle to drop point`;
-      else if (stage.verb === 'DRIVE_TO') objectiveText = `Drive to location`;
-      else if (stage.verb === 'SURVIVE') objectiveText = `Survive heat pursuit (${Math.ceil(stageTimer)}s)`;
-      else if (stage.verb === 'SHOOTOUT') objectiveText = `Eliminate hostile thugs (${hostiles.filter(h => h.hp > 0).length} left)`;
-      else if (stage.verb === 'CHECKLIST') objectiveText = `Deliver cars to chop point (${checklistDelivered.length}/${stage.specs.length})`;
-      else if (stage.verb === 'RESPRAY') objectiveText = `Respray vehicle at spray shop ($200)`;
-
-      return {
-        jobLabel: `JOB ${activeJobIdx + 1}/8 — ${job.title.toUpperCase()}`,
-        objective: objectiveText,
-        next: `Stage ${stageIdx + 1}/${job.stages.length}`,
-        stageLabel: `STAGE ${stageIdx + 1}/${job.stages.length}`,
-        timer: stageTimer > 0 ? `${Math.floor(stageTimer/60)}:${Math.floor(stageTimer%60).toString().padStart(2,'0')}` : ''
-      };
-    },
-    armJobStart() {
-      if (activeJobIdx >= 0 || ctx.save.missionIndex >= JOBS.length) return null;
-      const job = JOBS[ctx.save.missionIndex];
-      return {
-        pos: job.start,
-        radius: 6,
-        label: () => ctx.save.rep >= job.repGate ? `[E] START JOB: ${job.title}` : `[Locked: ${job.repGate} REP]`,
-        action: () => {
-          this.startJob(job.id);
-        }
-      };
-    },
-    update(dt) {
-      if (activeJobIdx < 0) return;
-      const job = JOBS[activeJobIdx];
-      const stage = job.stages[stageIdx];
-
-      // Police floor clamp
-      if (stage.floor) {
-        if (ctx.police.points < stage.floor) {
-          ctx.police.setPoints(stage.floor); // We will add setPoints in police.js or manage via addPoints/clamp
-        }
-      }
-
-      // Timers
-      if (stage.timeLimit || stage.seconds) {
-        stageTimer -= dt;
-        if (stageTimer <= 0) {
-          failJob();
-          return;
-        }
-      }
-
-      // Job car guard / respawn if destroyed
-      if (stage.verb === 'STEAL_CAR' && stageCar) {
-        if (stageCar.durability <= 0 || !ctx.traffic.cars.includes(stageCar)) {
-          // Respawn stage car
-          const spec = getVehicleSpec(stage.spec);
-          const mesh = createCarMesh(stage.spec);
-          ctx.scene.add(mesh);
-          mesh.position.set(stage.at[0], 0, stage.at[1]);
-          stageCar = {
-            mesh,
-            spec,
-            x: stage.at[0],
-            z: stage.at[1],
-            speed: 0,
-            heading: 0,
-            stolen: false,
-            durability: 100,
-            jobCar: true
-          };
-          ctx.traffic.cars.push(stageCar);
-          ctx.notify('Job vehicle replaced.');
-        }
-      }
-
-      // Hostiles AI
-      if (stage.verb === 'SHOOTOUT') {
-        let allDown = true;
-        for (const h of hostiles) {
-          if (h.hp > 0) {
-            allDown = false;
-            const dist = Math.hypot(h.x - ctx.player.x, h.z - ctx.player.z);
-            if (dist > 7) {
-              const angle = Math.atan2(ctx.player.x - h.x, ctx.player.z - h.z);
-              h.x += Math.sin(angle) * 2.5 * dt;
-              h.z += Math.cos(angle) * 2.5 * dt;
-              h.mesh.position.set(h.x, 0.9, h.z);
-              h.mesh.rotation.y = angle;
-            }
-            h.fireTimer -= dt;
-            if (h.fireTimer <= 0 && dist < 42) {
-              h.fireTimer = 1.6 + 1.1;
-              const hitChance = Math.max(0.25, Math.min(0.78, 0.78 - dist * 0.012));
-              if (Math.random() < hitChance) {
-                ctx.combat.takeDamage(6);
-              }
-            }
-          }
-        }
-        if (allDown && hostiles.length > 0) {
-          clearHostiles();
-          stageIdx++;
-          if (stageIdx >= job.stages.length) completeJob();
-          else setupStage();
-          return;
-        }
-      }
-
-      // Stage condition checks
-      if (stage.at) {
-        const dist = Math.hypot(ctx.player.x - stage.at[0], ctx.player.z - stage.at[1]);
-        const radius = stage.radius || 8;
-
-        // Edge latch: must approach from outside radius + 6
-        if (dist > radius + 6) {
-          edgeLatchMet = true;
-        }
-
-        if (dist <= radius && edgeLatchMet) {
-          let pass = false;
-          if (stage.verb === 'DRIVE_TO') {
-            pass = true;
-          } else if (stage.verb === 'STEAL_CAR') {
-            if (ctx.player.mode === 'drive' && ctx.player.car === stageCar) {
-              pass = true;
-            }
-          } else if (stage.verb === 'DELIVER') {
-            if (ctx.player.mode === 'drive' && ctx.player.car) {
-              pass = true;
-            }
-          } else if (stage.verb === 'CHECKLIST') {
-            if (ctx.player.mode === 'drive' && ctx.player.car && !ctx.player.car.jobCar && !ctx.player.car.police) {
-              const sId = ctx.player.car.spec.id;
-              if (stage.specs.includes(sId) && !checklistDelivered.includes(sId)) {
-                checklistDelivered.push(sId);
-                // Remove car
-                const idx = ctx.traffic.cars.indexOf(ctx.player.car);
-                if (idx >= 0) ctx.traffic.cars.splice(idx, 1);
-                ctx.scene.remove(ctx.player.car.mesh);
-                ctx.player.mode = 'foot';
-                ctx.player.car = null;
-                ctx.scene.add(ctx.playerMesh);
-                pass = checklistDelivered.length >= stage.specs.length;
-              }
-            }
-          }
-
-          if (pass) {
-            stageIdx++;
-            if (stageIdx >= job.stages.length) {
-              completeJob();
-            } else {
-              setupStage();
-            }
-          }
-        }
-      } else if (stage.verb === 'SURVIVE') {
-        if (stageTimer <= 0) {
-          stageIdx++;
-          if (stageIdx >= job.stages.length) {
-            completeJob();
-          } else {
-            setupStage();
-          }
-        }
-      }
-    }
+    JOBS,
+    reset,
+    jobActive,
+    startJob,
+    setStage,
+    update,
+    currentObjective,
+    marker,
+    onPlayerDown: () => { if (jobActive()) failJob('Player downed'); },
+    getHostiles: () => hostiles,
+    getStageCar: () => stageCar,
+    getActiveStage: () => jobActive() ? JOBS[activeJobIndex].stages[activeStageIndex] : null
   };
 }
