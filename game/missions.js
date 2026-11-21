@@ -308,7 +308,8 @@ export function createMissions(ctx) {
     else if (stage.verb === 'RESPRAY') objText = `Respray vehicle at spray shop`;
 
     return {
-      jobLabel: `JOB ${activeJobIndex + 1}/8: ${job.title}`,
+      jobIndex: activeJobIndex,
+      jobLabel: job.title,
       objective: objText,
       next: activeStageIndex + 1 < job.stages.length ? job.stages[activeStageIndex + 1].verb : 'Finalize',
       timer: stageTimer > 0 ? Math.ceil(stageTimer) : null

@@ -88,7 +88,8 @@ export function createHud(container) {
       const missionEl = document.getElementById('hud-mission');
       if (missionEl) {
         const obj = missions && typeof missions.currentObjective === 'function' ? missions.currentObjective() : null;
-        document.getElementById('hud-job-title').textContent = obj ? `JOB ${obj.jobIndex + 1}/8 — ${obj.jobLabel}` : 'FREEROAM';
+        const jIdx = obj && obj.jobIndex !== undefined ? obj.jobIndex : (save ? save.missionIndex : 0);
+        document.getElementById('hud-job-title').textContent = obj ? `JOB ${jIdx + 1}/8 — ${obj.jobLabel}` : 'FREEROAM';
         document.getElementById('hud-objective').textContent = obj ? obj.objective : 'Explore Caldera Bay';
         document.getElementById('hud-stage').textContent = obj ? obj.stageLabel : '';
         document.getElementById('hud-next').textContent = obj ? `NEXT: ${obj.next}` : '';

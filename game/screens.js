@@ -73,7 +73,7 @@ export function createScreens(container, hooks) {
         </div>
         <div style="flex:1; background:rgba(20,24,32,0.8); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;">
           <div id="garage-preview-container" style="width:100%; height:200px; position:relative;">
-            <canvas id="garage-preview-canvas" style="width:100%; height:100%;"></canvas>
+            <canvas id="garage-preview-canvas" width="200" height="200" style="width:100%; height:100%;"></canvas>
           </div>
           <h3 style="margin:0; font-size:24px; color:#FFF;" id="garage-selected-name">ZORRO GT</h3>
           <div style="font-size:16px; color:#FF7E5F;" id="garage-selected-stats">220 KM/H · GRIP 0.85</div>

@@ -14,6 +14,7 @@ import * as saveModule from './save.js';
 import * as economyModule from './economy.js';
 import * as missionsModule from './missions.js';
 import * as screens from './screens.js';
+import * as hud from './hud.js';
 
 // --- SEED & RNG ---
 function mulberry32(a) {
@@ -523,8 +524,8 @@ function updateHUD() {
       if (playerOnFoot && trafficController && trafficController.cars) {
         for (const c of trafficController.cars) {
           if (!c.active || c.stolen) continue;
-          if (Math.hypot(c.x - playerX, c.z - playerZ) < 4.5) {
-            promptText = 'PRESS E TO CARJACK';
+          if (Math.hypot(c.x - playerX, c.z - playerZ) <= 3.0) {
+            promptText = 'E — STEAL';
             showPrompt = true;
             break;
           }
@@ -645,6 +646,8 @@ export function init() {
   initWorld(77);
 
   const screenRoot = document.getElementById('screen-root');
+  const hudRoot = document.getElementById('hud-root');
+  const hudController = hud.createHud(hudRoot);
   let garageRenderer, garageScene, garageCamera, previewCar;
 
   function updateGaragePreview(carId) {
@@ -671,7 +674,7 @@ export function init() {
     onContinue: () => { gameScreens.showStart(false); frozen = false; },
     onOpenGarage: () => { gameScreens.showGarage(true); updateGaragePreview('zorro-gt'); }
   });
-  window.__debug = { gameScreens, updateGaragePreview };
+  window.__debug = { gameScreens, updateGaragePreview, hud: hudController };
 
   const params = new URLSearchParams(window.location.search);
   const shot = params.get('shot');
@@ -740,7 +743,17 @@ export function init() {
     }
 
     renderer.render(scene, camera);
-    updateHUD();
+    hudController.update({
+      player: { x: playerX, z: playerZ, heading: playerHeading, speed: playerSpeed, spec: playerCar ? playerCar.spec : null, durability: playerCar ? playerCar.durability : 0, onFoot: playerOnFoot },
+      police,
+      missions,
+      economy,
+      save,
+      dialogue: dialogueState,
+      callout: lastEventText,
+      radio: { getStationInfo: () => ({ name: 'RADIO CALDERA FM', track: 'Brisa de Ceniza' }) },
+      playerX, playerZ, playerHeading
+    });
 
     requestAnimationFrame(frame);
   }
@@ -790,9 +803,184 @@ window.__calderaTest = {
     playerOnFoot = true;
     if (playerFigure) playerFigure.visible = true;
   },
+  stageCover(canonicalSave) {
+    if (gameScreens) {
+      gameScreens.showStart(false);
+      gameScreens.showGarage(false);
+      gameScreens.showGameOver(false);
+    }
+    initWorld(77);
+    if (canonicalSave) {
+      save = canonicalSave;
+      playerCash = canonicalSave.cash;
+    }
+    missions.startJob(6, true);
+    police.setHeatPoints(50); // Heat 2 for dispatch panel
+    playerOnFoot = false;
+    if (playerFigure) playerFigure.visible = false;
+    if (playerCar) scene.remove(playerCar);
+
+    const heroSpec = vehicles.getVehicleSpec('zorro-gt');
+    playerCar = vehicles.createCarMesh('zorro-gt', 'full', heroSpec.color);
+    playerCar.x = 330; playerCar.z = 60; // Paseo Dorado boulevard
+    playerCar.heading = 0;
+    playerCar.speed = 15.0; // 54 KM/H speedo
+    playerCar.spec = heroSpec;
+    playerCar.position.set(playerCar.x, city.groundHeight(playerCar.x, playerCar.z), playerCar.z);
+    scene.add(playerCar);
+    activeDrivenCar = playerCar;
+
+    const cx = playerCar.x - Math.sin(playerCar.heading) * 7.5;
+    const cz = playerCar.z - Math.cos(playerCar.heading) * 7.5;
+    const cy = city.groundHeight(cx, cz) + 3.2;
+    camera.position.set(cx, cy, cz);
+    camera.lookAt(playerCar.x, city.groundHeight(playerCar.x, playerCar.z) + 1.0, playerCar.z);
+    camera.updateMatrixWorld();
+
+    police.clear();
+    police.setHeatPoints(50);
+    const unitPositions = [
+      { x: 324, z: 72, heading: 0.1, name: 'U1 PERALTA' },
+      { x: 336, z: 75, heading: -0.1, name: 'U2 GOMEZ' },
+      { x: 328, z: 85, heading: 0.2, name: 'U3 SILVA' },
+      { x: 332, z: 90, heading: -0.2, name: 'U4 ROJAS' }
+    ];
+    const units = police.activeUnits();
+    unitPositions.forEach(up => {
+      const mesh = vehicles.createCarMesh('fenix', 'std', 0xE8E4DA);
+      const sh = city.groundHeight(up.x, up.z);
+      mesh.position.set(up.x, sh, up.z);
+      mesh.rotation.y = up.heading;
+      scene.add(mesh);
+      units.push({
+        mesh,
+        x: up.x,
+        z: up.z,
+        heading: up.heading,
+        speed: 16,
+        name: up.name,
+        tactic: 'PURSUIT'
+      });
+    });
+
+    simulateStep(0.016);
+    frozen = true;
+    renderer.render(scene, camera);
+  },
+  checkCoverUnits() {
+    const units = police.activeUnits();
+    const results = [];
+    const width = renderer.domElement.width;
+    const height = renderer.domElement.height;
+    units.forEach((u, i) => {
+      const v = new THREE.Vector3(u.x, city.groundHeight(u.x, u.z), u.z);
+      v.project(camera);
+      const sx = (v.x * 0.5 + 0.5) * width;
+      const sy = (-(v.y * 0.5) + 0.5) * height;
+      const inFrustum = (v.z >= -1 && v.z <= 1 && v.x >= -1 && v.x <= 1 && v.y >= -1 && v.y <= 1);
+      results.push({ index: i, name: u.name, x: u.x, z: u.z, screenX: sx, screenY: sy, inFrustum });
+    });
+    console.log('Cover police units screen positions:', results);
+    return results;
+  },
+  stageGameplay1(canonicalSave) {
+    if (gameScreens) {
+      gameScreens.showStart(false);
+      gameScreens.showGarage(false);
+      gameScreens.showGameOver(false);
+    }
+    initWorld(77); // Lit boulevard (Paseo Dorado)
+    if (canonicalSave) {
+      save = canonicalSave;
+      playerCash = canonicalSave.cash;
+    }
+    missions.startJob(0, true);
+    police.setHeatPoints(15); // Heat 1 (2 units)
+    playerOnFoot = true;
+    playerX = 330; playerZ = 60;
+    playerHeading = 0;
+    if (playerFigure) {
+      playerFigure.position.set(playerX, city.groundHeight(playerX, playerZ), playerZ);
+      playerFigure.visible = true;
+    }
+    if (playerCar) {
+      scene.remove(playerCar);
+      playerCar = null;
+    }
+    activeDrivenCar = null;
+
+    // Stage 5 peds 5-15m from camera, spread across frame width
+    const peds = pedestrians.peds;
+    if (peds) {
+      const pedPositions = [
+        { x: 326, z: 64 },
+        { x: 328, z: 65 },
+        { x: 330, z: 66 },
+        { x: 332, z: 65 },
+        { x: 334, z: 64 }
+      ];
+      for (let i = 0; i < Math.min(pedPositions.length, peds.length); i++) {
+        peds[i].x = pedPositions[i].x;
+        peds[i].z = pedPositions[i].z;
+        peds[i].hp = peds[i].maxHp;
+        peds[i].state = 'stand';
+        peds[i].mesh.position.set(peds[i].x, city.groundHeight(peds[i].x, peds[i].z), peds[i].z);
+        peds[i].mesh.visible = true;
+      }
+    }
+
+    simulateStep(0.016);
+    playerX = 330; playerZ = 60;
+    if (playerFigure) {
+      playerFigure.position.set(playerX, city.groundHeight(playerX, playerZ), playerZ);
+      playerFigure.visible = true;
+    }
+    const carSpec = vehicles.getVehicleSpec('corsario-s');
+    const stealableCar = vehicles.createCarMesh('corsario-s', 'full', carSpec.color);
+    stealableCar.x = 330; stealableCar.z = 64;
+    stealableCar.position.set(stealableCar.x, city.groundHeight(stealableCar.x, stealableCar.z), stealableCar.z);
+    scene.add(stealableCar);
+    window.__calderaTest.stealableCar = stealableCar;
+
+    const promptEl = document.getElementById('prompt');
+    if (promptEl) {
+      promptEl.style.display = 'block';
+      promptEl.textContent = 'E — STEAL';
+    }
+
+    const cx = playerX;
+    const cz = playerZ - 6.0;
+    const cy = city.groundHeight(cx, cz) + 2.8;
+    camera.position.set(cx, cy, cz);
+    camera.lookAt(playerX, city.groundHeight(playerX, playerZ) + 1.0, playerZ + 6.0);
+    camera.updateMatrixWorld();
+
+    frozen = true;
+    renderer.render(scene, camera);
+  },
+  checkGameplay1Peds() {
+    const peds = pedestrians.peds;
+    const results = [];
+    const width = renderer.domElement.width;
+    const height = renderer.domElement.height;
+    peds.forEach((p, i) => {
+      const v = new THREE.Vector3(p.x, city.groundHeight(p.x, p.z), p.z);
+      v.project(camera);
+      const sx = (v.x * 0.5 + 0.5) * 100;
+      const sy = (-(v.y * 0.5) + 0.5) * 100;
+      const inFrustum = (v.z >= -1 && v.z <= 1 && v.x >= -1 && v.x <= 1 && v.y >= -1 && v.y <= 1);
+      const dist = camera.position.distanceTo(new THREE.Vector3(p.x, city.groundHeight(p.x, p.z), p.z));
+      results.push({ index: i, x: p.x, z: p.z, dist, screenX: sx.toFixed(1) + '%', screenY: sy.toFixed(1) + '%', inFrustum });
+    });
+    console.log('Gameplay-1 peds screen positions:', JSON.stringify(results, null, 2));
+    const visiblePeds = results.filter(p => p.inFrustum && p.dist >= 5 && p.dist <= 15);
+    console.log('Visible peds in 5-15m frustum:', visiblePeds.length);
+    return visiblePeds;
+  },
   city,
   vehicles,
   traffic,
+  trafficController,
   pedestrians,
   combat,
   main: { initWorld, simulateStep },

@@ -54,6 +54,10 @@ export function heatLevel() {
   return currentHeat;
 }
 
+export function activeUnits() {
+  return units;
+}
+
 export function points() {
   return currentPoints;
 }
